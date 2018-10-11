@@ -5,6 +5,8 @@
 #include "TVectorD.h"
 #include "TFile.h"
 #include "TGraph.h"
+#include "TMultiGraph.h"
+#include "TMarker.h"
 #include "Smooth.h"
 class DataProcessing
 {
@@ -16,12 +18,13 @@ public:
 	int DoNothing(TVectorD*,double );
 	int SwithD(TVectorD*,double );
 	int SwithDI(TVectorD*,double );
-	void DrawWave();
-	inline void SetCut(double setv){cutoff=setv;}
+	void DrawWave(int );
 	inline void SetPolar(int setv){polar=setv;}
         inline void SetBase(int setv){baseline=setv;}
 	inline void SetSmoothTimes(int setv){smooth_times=setv;}
 	inline void SetThreshold(int setv){threshold=setv;}
+	inline void SetDCut(double setv){Dcutoff=setv;}
+        inline void SetICut(double setv){Icutoff=setv;}
 	inline double GetQ(int n){ return Q[n];}
 	inline double GetT(int n){ return T[n];}
         inline int GetRt(int n){ return Rt[n];}
@@ -33,14 +36,17 @@ public:
 	double* T;
 	int * Rt;
 	int * Pw;
+	std::vector<int>::iterator it;
 private:
 	void BaseSub(TVectorD*,double*);
 	double PeakFinding(double*,int);
+	void CalThreshold(double*);
         void Peaking(double*);
 	int polar;
 	int baseline;
 	int smooth_times;
-	double cutoff;
+	double Dcutoff;
+        double Icutoff;
 	LowPassFilter*lowp;
 	HighPassFilter*highp;
 	int length;

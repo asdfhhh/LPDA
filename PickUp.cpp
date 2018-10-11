@@ -24,6 +24,7 @@ int main(int argc, char **argv)
 	int Pw;
 	int trigger;
 	int draw_flag=0;
+	const int PIC_NUM=0;
 	char*pch=strstr(argv[1],"daq");
         strncpy(pch,"ana",3);
 	TFile*output= new TFile(argv[1],"RECREATE");
@@ -37,6 +38,7 @@ int main(int argc, char **argv)
 	t->Branch("trigger",&trigger,"trigger/I");
 
 	DataProcessing*datapro=new DataProcessing();
+	printf("total:%d\n",loop);
 	for(int i=0;i<loop;i++)
 	{
 		tree->GetEntry(i);
@@ -44,20 +46,23 @@ int main(int argc, char **argv)
 		channel=ev->Channel();
 		trigger=ev->EvN();
 
-		if ((board!=2)&&(board!=14)&&(board!=17))continue;
+		if (board!=17&&board!=14&&board!=2)continue;
 		//if(channel!=1)continue;
 		//CR after Smooth
 		if(channel==1)
 		{
 			datapro->SetSmoothTimes(30);
+			datapro->SetBase(300);
 			datapro->SwithD(ev->Adcs(),ev->Tof());
 		}
 		if(channel==2)
 		{
 			datapro->SetSmoothTimes(30);
+			datapro->SetBase(2000);
 			datapro->SwithDI(ev->Adcs(),ev->Tof());
 		}
 		//CR Method
+
 		//datapro->CRFilter(ev->Adcs(),ev->Tof());
 		//Smooth Method
 		//datapro->SetSmoothTimes(30);
@@ -65,14 +70,17 @@ int main(int argc, char **argv)
 		//Nothing to do 
 		//datapro->DoNothing(ev->Adcs(),ev->Tof());
 		peak_num=datapro->GetPeakNum();
-		if(draw_flag)
+
+		if(draw_flag<PIC_NUM)
 		{
-			datapro->DrawWave();
-			draw_flag--;
+			datapro->DrawWave(draw_flag);
+			draw_flag++;
 		}
 		//else break;
+
 		for(int ii=0;ii<peak_num;ii++)
 		{
+
 			Q=datapro->GetQ(ii);
 			T=datapro->GetT(ii);
 			Rt=datapro->GetRt(ii);
