@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 	int Pw;
 	int trigger;
 	int draw_flag=0;
-	const int PIC_NUM=0;
+	const int PIC_NUM=100;
 	char*pch=strstr(argv[1],"daq");
         strncpy(pch,"ana",3);
 	TFile*output= new TFile(argv[1],"RECREATE");
@@ -51,15 +51,18 @@ int main(int argc, char **argv)
 		//CR after Smooth
 		if(channel==1)
 		{
+			datapro->SetPolar(-1);
 			datapro->SetSmoothTimes(30);
 			datapro->SetBase(300);
 			datapro->SwithD(ev->Adcs(),ev->Tof());
 		}
 		if(channel==2)
 		{
+			datapro->SetPolar(1);
 			datapro->SetSmoothTimes(30);
 			datapro->SetBase(2000);
-			datapro->SwithDI(ev->Adcs(),ev->Tof());
+			//datapro->SwithDI(ev->Adcs(),ev->Tof());
+			datapro->DoSmooth(ev->Adcs(),ev->Tof());
 		}
 		//CR Method
 

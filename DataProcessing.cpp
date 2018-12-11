@@ -42,7 +42,7 @@ void DataProcessing::DrawWave(int num)
 	mg->Add(th);
 	it = peak_pos.begin();
 	TGraph *PM[peak_num];
-        for (int i=0;i<peak_num; i++)
+       for (int i=0;i<peak_num; i++)
         {
                 int tmp_peak=*it;
                 it++;
@@ -105,7 +105,7 @@ void DataProcessing::CalThreshold(double*tmp)
         //        tmp_Q+=tmp[ii];
         //}
         //tmp_Q=tmp_Q/baseline;
-
+	threshold=0;
 	//make the threshold with 3 sigma
         for(int ii=0; ii<baseline; ii++)
         {
@@ -192,11 +192,38 @@ int DataProcessing::DoSmooth(TVectorD*data,double daq_t)
 	Smooth*sm=new Smooth();
 	sm->SetSTimes(smooth_times);
 	sm->DoSmooth(w_signal,length);
-        CalThreshold(w_signal);
-	Q[0]=PeakFinding(w_signal,length);
-	T[0]=daq_t;
-	Rt[0]=1;
-	Pw[0]=1;
+        CalThreshold(w_signal);	
+	Peaking(w_signal);
+	//printf("peak_num:%d\n",peak_num);
+        if(Q)free(Q);
+        Q=(double*) malloc(peak_num*sizeof(double));
+        if(T)free(T);
+        T=(double*) malloc(peak_num*sizeof(double));
+        if(Rt)free(Rt);
+        Rt=(int*) malloc(peak_num*sizeof(int));
+        if(Pw)free(Pw);
+        Pw=(int*) malloc(peak_num*sizeof(int));
+	it = peak_pos.begin();
+        for (int i=0;i<peak_num; i++)
+        {
+                int tmp_peak=*it;
+		it++;
+                int tmp_width=*it;
+                it++;
+		int tmp_pp=*it;
+		it++;
+		//NOTICE:daq_t unit is 'ps', tmp_peak-tmp_width unit is 'ns'!!!
+		T[i]=1000*(tmp_peak-tmp_width)+daq_t;
+		Rt[i]=1000*tmp_pp;
+		Pw[i]=1000*tmp_width;
+		//printf("peak_pos:%d\t",tmp_peak);
+		//printf("peak_width:%d\n",tmp_width);
+		int expend_width=tmp_width;
+		
+		Q[i]=PeakFinding(w_signal+tmp_peak-tmp_width-1,expend_width+1);
+		//printf("peak:%f\n",Q[i]);
+	} 
+	
 	return 1;	
 }
 
