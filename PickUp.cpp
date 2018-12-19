@@ -46,23 +46,33 @@ int main(int argc, char **argv)
 		channel=ev->Channel();
 		trigger=ev->EvN();
 
-		if (board!=17&&board!=14&&board!=2)continue;
+		if (board!=3&&board!=14&&board!=2)continue;
 		//if(channel!=1)continue;
 		//CR after Smooth
-		if(channel==1)
+		if(board==3)
 		{
 			datapro->SetPolar(-1);
 			datapro->SetSmoothTimes(30);
-			datapro->SetBase(300);
-			datapro->SwithD(ev->Adcs(),ev->Tof());
-		}
-		if(channel==2)
-		{
-			datapro->SetPolar(1);
-			datapro->SetSmoothTimes(30);
 			datapro->SetBase(2000);
-			//datapro->SwithDI(ev->Adcs(),ev->Tof());
-			datapro->DoSmooth(ev->Adcs(),ev->Tof());
+			datapro->SwithDI(ev->Adcs(),ev->Tof());
+		}
+		else
+		{
+			if(channel==1)
+			{
+				datapro->SetPolar(-1);
+				datapro->SetSmoothTimes(30);
+				datapro->SetBase(300);
+				datapro->SwithD(ev->Adcs(),ev->Tof());
+			}
+			if(channel==2)
+			{
+				datapro->SetPolar(1);
+				datapro->SetSmoothTimes(30);
+				datapro->SetBase(2000);
+				//datapro->SwithDI(ev->Adcs(),ev->Tof());
+				datapro->DoSmooth(ev->Adcs(),ev->Tof());
+			}
 		}
 		//CR Method
 

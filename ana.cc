@@ -3,7 +3,7 @@
 	double Dt=-5.95E5;//ps
 	double c=299792458;//m/s light speed
 	double Mn=939.565413;// MeV neutron mass
-	TFile*f=new TFile("ToTal.root");
+	TFile*f=new TFile("ana.root");
 	double Q;
 	double T;
 	int Rt;
@@ -11,7 +11,7 @@
 	int trigger;	
 	int board;
 	int channel;
-	TTree*bank=(TTree*)f->Get("tot");
+	TTree*bank=(TTree*)f->Get("bank");
 	bank->SetBranchAddress("Q",&Q);
 	bank->SetBranchAddress("T",&T);
 	bank->SetBranchAddress("Rt",&Rt);
@@ -20,15 +20,15 @@
 	bank->SetBranchAddress("channel",&channel);
 	bank->SetBranchAddress("trigger",&trigger);
 	int total=bank->GetEntries();
-	float energy[2];
-	float TOF[2];
-	float det[2];
-	float dT;
+	float energy[3];
+	float TOF[3];
+	float det[3];
+	float dT[2];
 	TFile * rootf= new TFile("re_ToTal.root","RECREATE" );
 	TTree*ana=new TTree("ana","results of ana");
-	ana->Branch("TOF",&TOF,"TOF[2]/F");
-	ana->Branch("det",&det,"det[2]/F");
-	ana->Branch("energy",&energy,"energy[2]/F");
+	ana->Branch("TOF",&TOF,"TOF[3]/F");
+	ana->Branch("det",&det,"det[3]/F");
+	ana->Branch("energy",&energy,"energy[3]/F");
 	ana->Branch("dT",&dT,"dT/F");
 	ana->Branch("board",&board,"board/I");
 	int old_b=0;
@@ -50,64 +50,72 @@
 		{
 			TOF[ii]=0;
 			det[ii]=0;
-			dT=0;
+			dT[ii]=0;
 		}
-		if(channel!=2)continue;
+		TOF[2]=0;
+		det[2]=0;
+		if(board!=3)continue;
 		det[0]=Q;
 		energy[0]=Mn*(1/TMath::Sqrt(1-TMath::Power(length/(c*(T-Dt)/1E12),2))-1);
 		TOF[0]=T;
-		old_b=board;
+		if(channel==1)old_b=2;
+		else old_b=14;
 		old_tr=trigger;
 		int tmp_count=1;
 		while(i-tmp_count>-1)
 		{
 			bank->GetEntry(i-tmp_count);
-			if(board==old_b&&trigger==old_tr&&channel==1)
+			if(board==old_b&&trigger==old_tr)
 			{
-				if(det[1]&&(TMath::Abs(dT)>TMath::Abs(TOF[0]-T)))
+				if(det[channel]&&(TMath::Abs(dT[channel-1])>TMath::Abs(TOF[channel]-T)))
 				{
-					dT=TOF[0]-T;
-					det[1]=Q;
-					energy[1]=Mn*(1/TMath::Sqrt(1-TMath::Power(length/(c*(T-Dt)/1E12),2))-1);
-					TOF[1]=T;
+					dT[channel-1]=TOF[channel]-T;
+					det[channel]=Q;
+					energy[channel]=Mn*(1/TMath::Sqrt(1-TMath::Power(length/(c*(T-Dt)/1E12),2))-1);
+					TOF[channel]=T;
 				}
-				else if(!det[1])
+				else if(!det[channel])
 				{
-					dT=TOF[0]-T;
-					det[1]=Q;
-					energy[1]=Mn*(1/TMath::Sqrt(1-TMath::Power(length/(c*(T-Dt)/1E12),2))-1);
-					TOF[1]=T;
+					dT[channel-1]=TOF[channel]-T;
+					det[channel]=Q;
+					energy[channel]=Mn*(1/TMath::Sqrt(1-TMath::Power(length/(c*(T-Dt)/1E12),2))-1);
+					TOF[channel]=T;
 				}
 			}
-			else if(board!=old_b||trigger!=old_tr) break;
+			else if(trigger!=old_tr) break;
 			tmp_count++;
 		}
 		tmp_count=1;
 		while(i+tmp_count<total)
 		{
 			bank->GetEntry(i+tmp_count);
-			if(board==old_b&&trigger==old_tr&&channel==1)
+			if(board==old_b&&trigger==old_tr)
 			{
-				if(det[1]&&(TMath::Abs(dT)>TMath::Abs(TOF[0]-T)))
+				if(det[channel]&&(TMath::Abs(dT[channel-1])>TMath::Abs(TOF[channel]-T)))
 				{
-					dT=TOF[0]-T;
-					det[1]=Q;
-					energy[1]=Mn*(1/TMath::Sqrt(1-TMath::Power(length/(c*(T-Dt)/1E12),2))-1);
-					TOF[1]=T;
+					dT[channel-1]=TOF[channel]-T;
+					det[channel]=Q;
+					energy[channel]=Mn*(1/TMath::Sqrt(1-TMath::Power(length/(c*(T-Dt)/1E12),2))-1);
+					TOF[channel]=T;
 				}
-				else if(!det[1])
+				else if(!det[channel])
 				{
-					dT=TOF[0]-T;
-					det[1]=Q;
-					energy[1]=Mn*(1/TMath::Sqrt(1-TMath::Power(length/(c*(T-Dt)/1E12),2))-1);
-					TOF[1]=T;
+					dT[channel-1]=TOF[channel]-T;
+					det[channel]=Q;
+					energy[channel]=Mn*(1/TMath::Sqrt(1-TMath::Power(length/(c*(T-Dt)/1E12),2))-1);
+					TOF[channel]=T;
 				}
 			}
-			else if(board!=old_b||trigger!=old_tr) break;	
+			else if(trigger!=old_tr) break;	
 			tmp_count++;
 		}
 		
-		if(det[1]!=0){board=old_b;ana->Fill();}
+		if(det[0]!=0){board=old_b;ana->Fill();
+				for(int ii=0;ii<3;ii++)
+		{
+			cout<<TOF[ii]<<"\t"<<det[ii]<<"\t"<<board<<"\t"<<old_tr<<endl;
+		}
+		}
 	}
 	
 	rootf->cd();
